@@ -1,0 +1,173 @@
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
+import os
+import sys
+import json
+import torch
+import numpy as np
+from datetime import datetime
+
+# 프로젝트 루트 경로 추가
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from models.transformer_pytorch import TransformerModel
+from utils.tokenizer import ChatbotTokenizer
+
+app = Flask(__name__)
+CORS(app)
+
+# 전역 변수로 모델과 토크나이저 저장
+model = None
+tokenizer = None
+
+def load_model():
+    """학습된 모델을 로드합니다."""
+    global model, tokenizer
+    
+    try:
+        # 토크나이저 로드
+        tokenizer = ChatbotTokenizer()
+        tokenizer.load('utils/tokenizer.pkl')
+        
+        # 모델 로드
+        model = TransformerModel(
+            vocab_size=tokenizer.get_vocab_size(),
+            d_model=128,
+            num_layers=4,
+            num_heads=8,
+            d_ff=512
+        )
+        
+        # GPU 사용 가능시 GPU 사용
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.load_state_dict(torch.load('models/checkpoints/best_model.pth', map_location=device))
+        model.to(device)
+        model.eval()
+        
+        print(f"모델이 {device}에 로드되었습니다.")
+        return True
+        
+    except Exception as e:
+        print(f"모델 로드 실패: {e}")
+        return False
+
+def generate_response(user_input, max_length=50):
+    """사용자 입력에 대한 응답을 생성합니다."""
+    if model is None or tokenizer is None:
+        return "모델이 로드되지 않았습니다."
+    
+    try:
+        # 입력 텍스트를 토큰화
+        input_sequence = tokenizer.encode([user_input])
+        input_tensor = torch.tensor(input_sequence, dtype=torch.long)
+        
+        # GPU 사용 가능시 GPU로 이동
+        device = next(model.parameters()).device
+        input_tensor = input_tensor.to(device)
+        
+        # 응답 생성
+        with torch.no_grad():
+            output = model(input_tensor)
+            
+            # 다음 토큰 예측
+            next_token = torch.argmax(output[0, -1, :]).unsqueeze(0)
+            
+            # 시퀀스 생성
+            generated_sequence = [next_token.item()]
+            
+            for _ in range(max_length - 1):
+                # 현재 시퀀스로 다음 토큰 예측
+                current_sequence = torch.tensor([generated_sequence], dtype=torch.long).to(device)
+                output = model(current_sequence)
+                next_token = torch.argmax(output[0, -1, :]).unsqueeze(0)
+                generated_sequence.append(next_token.item())
+                
+                # EOS 토큰이면 중단
+                if next_token.item() == tokenizer.word_index.get('<EOS>', 0):
+                    break
+        
+        # 토큰을 텍스트로 변환
+        response = tokenizer.decode([generated_sequence])[0]
+        return response
+        
+    except Exception as e:
+        print(f"응답 생성 실패: {e}")
+        return "죄송합니다. 응답을 생성할 수 없습니다."
+
+@app.route('/')
+def home():
+    """홈페이지"""
+    return render_template('index.html')
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    """챗봇 API 엔드포인트"""
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return jsonify({'error': '메시지가 없습니다.'}), 400
+        
+        # 응답 생성
+        response = generate_response(user_message)
+        
+        # 로그 기록
+        log_chat(user_message, response)
+        
+        return jsonify({
+            'response': response,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/status')
+def status():
+    """서버 상태 확인"""
+    return jsonify({
+        'status': 'running',
+        'model_loaded': model is not None,
+        'timestamp': datetime.now().isoformat()
+    })
+
+def log_chat(user_input, response):
+    """대화 로그를 기록합니다."""
+    log_entry = {
+        'timestamp': datetime.now().isoformat(),
+        'user_input': user_input,
+        'bot_response': response
+    }
+    
+    log_file = 'data/chat_logs.json'
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+    
+    try:
+        # 기존 로그 로드
+        if os.path.exists(log_file):
+            with open(log_file, 'r', encoding='utf-8') as f:
+                logs = json.load(f)
+        else:
+            logs = []
+        
+        # 새 로그 추가
+        logs.append(log_entry)
+        
+        # 로그 저장 (최근 1000개만 유지)
+        if len(logs) > 1000:
+            logs = logs[-1000:]
+        
+        with open(log_file, 'w', encoding='utf-8') as f:
+            json.dump(logs, f, ensure_ascii=False, indent=2)
+            
+    except Exception as e:
+        print(f"로그 기록 실패: {e}")
+
+if __name__ == '__main__':
+    # 모델 로드
+    if load_model():
+        print("챗봇 서버가 시작되었습니다.")
+        app.run(host='0.0.0.0', port=5000, debug=False)
+    else:
+        print("모델 로드 실패로 서버를 시작할 수 없습니다.") 
