@@ -10,10 +10,10 @@ RUN apt-get update && apt-get install -y \
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# Python 의존성 파일 복사 및 설치
-COPY requirements.txt .
+# 프로덕션 의존성만 설치
+COPY requirements-prod.txt .
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir --user -r requirements.txt
+    pip install --no-cache-dir --user -r requirements-prod.txt
 
 # 프로덕션 스테이지
 FROM python:3.11-slim
@@ -33,8 +33,11 @@ COPY --from=builder /root/.local /root/.local
 # PATH에 사용자 Python 패키지 추가
 ENV PATH=/root/.local/bin:$PATH
 
-# 애플리케이션 코드 복사
-COPY . .
+# 필요한 파일만 복사
+COPY models/transformer_pytorch.py models/
+COPY utils/tokenizer.py utils/
+COPY server/app.py server/
+COPY server/templates/ server/templates/
 
 # 필요한 디렉토리 생성
 RUN mkdir -p data models/checkpoints server/templates logs
