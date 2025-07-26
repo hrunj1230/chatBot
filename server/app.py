@@ -47,8 +47,13 @@ def load_model():
         print(f"모델이 {device}에 로드되었습니다.")
         return True
         
+    except FileNotFoundError as e:
+        print(f"모델 파일을 찾을 수 없습니다: {e}")
+        print("서버는 실행되지만 모델이 로드되지 않았습니다.")
+        return False
     except Exception as e:
         print(f"모델 로드 실패: {e}")
+        print("서버는 실행되지만 모델이 로드되지 않았습니다.")
         return False
 
 def generate_response(user_input, max_length=50):
@@ -165,9 +170,12 @@ def log_chat(user_input, response):
         print(f"로그 기록 실패: {e}")
 
 if __name__ == '__main__':
-    # 모델 로드
-    if load_model():
-        print("챗봇 서버가 시작되었습니다.")
-        app.run(host='0.0.0.0', port=5000, debug=False)
+    # 모델 로드 시도
+    model_loaded = load_model()
+    
+    if model_loaded:
+        print("챗봇 서버가 시작되었습니다. (모델 로드 완료)")
     else:
-        print("모델 로드 실패로 서버를 시작할 수 없습니다.") 
+        print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
+    
+    app.run(host='0.0.0.0', port=5000, debug=False) 
