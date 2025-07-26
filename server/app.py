@@ -30,18 +30,26 @@ def load_model():
         tokenizer.load('utils/tokenizer.pkl')
         
         # 모델 로드
-        model = TransformerModel(
-            vocab_size=tokenizer.get_vocab_size(),
-            d_model=128,
-            num_layers=4,
-            num_heads=8,
-            d_ff=512
-        )
-        
-        # GPU 사용 가능시 GPU 사용
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        model.load_state_dict(torch.load('models/checkpoints/best_model.pth', map_location=device))
-        model.to(device)
+        checkpoint = torch.load('models/checkpoints/best_model.pth', map_location=device)
+        
+        # 체크포인트에서 모델 설정 가져오기
+        vocab_size = checkpoint.get('vocab_size', tokenizer.get_vocab_size())
+        d_model = checkpoint.get('d_model', 256)
+        num_layers = checkpoint.get('num_layers', 6)
+        num_heads = checkpoint.get('num_heads', 8)
+        d_ff = checkpoint.get('d_ff', 1024)
+        
+        model = TransformerModel(
+            vocab_size=vocab_size,
+            d_model=d_model,
+            num_layers=num_layers,
+            num_heads=num_heads,
+            d_ff=d_ff
+        ).to(device)
+        
+        # 모델 가중치 로드
+        model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
         
         print(f"모델이 {device}에 로드되었습니다.")
