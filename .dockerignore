@@ -42,11 +42,13 @@ ehthumbs.db
 Thumbs.db
 
 # 프로젝트 특정
-data/*.json
-data/*.csv
-models/checkpoints/*
-logs/*
-*.log
+# data/*.json
+# data/*.csv
+# models/checkpoints/*
+# logs/*
+# *.log
+
+# 모델/토크나이저 파일은 반드시 포함해야 하므로 주석 처리
 
 # 문서
 *.md

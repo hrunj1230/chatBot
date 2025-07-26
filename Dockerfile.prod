@@ -11,6 +11,9 @@ COPY models/transformer_pytorch.py models/
 COPY utils/tokenizer.py utils/
 COPY server/app.py server/
 COPY server/templates/ server/templates/
+# 모델 체크포인트와 토크나이저 파일 복사
+COPY models/checkpoints/best_model.pth models/checkpoints/
+COPY utils/tokenizer.pkl utils/
 
 RUN mkdir -p data models/checkpoints server/templates logs
 
