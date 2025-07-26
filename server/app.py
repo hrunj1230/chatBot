@@ -186,4 +186,5 @@ if __name__ == '__main__':
     else:
         print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
     
+    # 프로덕션 환경에서는 Gunicorn 사용
     app.run(host='0.0.0.0', port=5000, debug=False) 
