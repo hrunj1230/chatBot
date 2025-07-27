@@ -17,6 +17,7 @@ COPY utils/auto_data_collector.py utils/
 COPY utils/auto_scheduler.py utils/
 COPY simple_chat_server.py .
 COPY server/templates/ server/templates/
+COPY templates/ templates/
 # 토크나이저 파일 복사 (메뉴얼 토크나이저)
 COPY data/manual_tokenizer.pkl utils/tokenizer.pkl
 # 메뉴얼 모델 파일 복사

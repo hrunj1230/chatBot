@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 import json
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 CORS(app)
 
 def evaluate_conversation_quality(user_input, response):
