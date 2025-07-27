@@ -30,4 +30,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/api/status || exit 1
 
 # 애플리케이션 실행 (Gunicorn 사용)
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "server.app:app"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "30", "server.app:app"] 

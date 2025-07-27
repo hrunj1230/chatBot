@@ -177,14 +177,14 @@ def log_chat(user_input, response):
     except Exception as e:
         print(f"로그 기록 실패: {e}")
 
+# 모델 로드 시도 (서버 시작 시)
+model_loaded = load_model()
+
+if model_loaded:
+    print("챗봇 서버가 시작되었습니다. (모델 로드 완료)")
+else:
+    print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
+
 if __name__ == '__main__':
-    # 모델 로드 시도
-    model_loaded = load_model()
-    
-    if model_loaded:
-        print("챗봇 서버가 시작되었습니다. (모델 로드 완료)")
-    else:
-        print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
-    
-    # 프로덕션 환경에서는 Gunicorn 사용
+    # 개발 환경에서만 Flask 서버 실행
     app.run(host='0.0.0.0', port=5000, debug=False) 
