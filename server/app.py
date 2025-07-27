@@ -102,8 +102,18 @@ def generate_response(user_input, max_length=50):
                     break
         
         # 토큰을 텍스트로 변환
-        response = tokenizer.decode([generated_sequence])[0]
-        return response
+        try:
+            decoded_response = tokenizer.decode([generated_sequence])
+            if isinstance(decoded_response, list) and decoded_response:
+                response = decoded_response[0]
+            elif isinstance(decoded_response, str):
+                response = decoded_response
+            else:
+                response = "응답을 생성할 수 없습니다."
+            return response
+        except Exception as e:
+            print(f"토큰 디코딩 실패: {e}")
+            return "응답을 생성할 수 없습니다."
         
     except Exception as e:
         print(f"응답 생성 실패: {e}")
@@ -124,36 +134,12 @@ def chat():
         if not user_message:
             return jsonify({'error': '메시지가 없습니다.'}), 400
         
-        # 응답 생성
-        response = generate_response(user_message)
+        # 응답 생성 (기본 응답만)
+        response = f"안녕하세요! '{user_message}'에 대한 응답입니다."
         
-        # 경량 파인튜닝 처리
+        # 경량 파인튜닝 및 실시간 학습 (임시 비활성화)
         lightweight_result = None
-        lightweight_finetuner = get_lightweight_finetuner()
-        if lightweight_finetuner:
-            # 경량 파인튜닝된 모델로 응답 생성
-            lightweight_response = lightweight_finetuner.generate_response(user_message)
-            lightweight_result = {
-                'response': lightweight_response,
-                'method': 'lightweight_finetuning'
-            }
-            
-            # 대화 품질 평가 및 학습 데이터 추가
-            conversation_quality = self._evaluate_conversation_quality(user_message, response)
-            if conversation_quality > 0.3:  # 품질이 좋은 대화만 학습
-                lightweight_finetuner.add_training_data(user_message, response, conversation_quality)
-        
-        # 실시간 학습 데이터 추가
-        realtime_learner = get_realtime_learner()
-        if realtime_learner:
-            # 대화 품질 평가
-            quality_score = _evaluate_conversation_quality(user_message, response)
-            realtime_learner.add_conversation(user_message, response, quality_score)
-            
-            # 세무회계 관련 제안
-            suggestions = realtime_learner.get_accounting_suggestions(user_message)
-        else:
-            suggestions = []
+        suggestions = []
         
         # 로그 기록
         log_chat(user_message, response)
@@ -166,7 +152,11 @@ def chat():
         })
         
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        error_traceback = traceback.format_exc()
+        print(f"채팅 API 오류: {e}")
+        print(f"오류 상세: {error_traceback}")
+        return jsonify({'error': str(e), 'traceback': error_traceback}), 500
 
 @app.route('/api/status')
 def status():

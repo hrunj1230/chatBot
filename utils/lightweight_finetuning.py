@@ -427,7 +427,13 @@ class LightweightFineTuner:
                 # 토큰을 텍스트로 변환
                 response = self.tokenizer.decode([response_tokens])
                 
-                return response if response else "응답을 생성할 수 없습니다."
+                # 리스트인 경우 첫 번째 요소 반환
+                if isinstance(response, list) and response:
+                    return response[0]
+                elif isinstance(response, str):
+                    return response
+                else:
+                    return "응답을 생성할 수 없습니다."
                 
         except Exception as e:
             print(f"응답 생성 실패: {e}")
