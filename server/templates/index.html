@@ -268,6 +268,13 @@
                         <p>로딩 중...</p>
                     </div>
                 </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f3e5f5; border-radius: 8px;">
+                    <h4>🚀 경량 파인튜닝 성능 지표</h4>
+                    <div id="lightweightMetrics">
+                        <p>로딩 중...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -451,11 +458,40 @@
             }
         }
 
+        // 경량 파인튜닝 성능 지표 확인
+        async function checkLightweightMetrics() {
+            try {
+                const response = await fetch('/api/lightweight-metrics');
+                const data = await response.json();
+                
+                if (response.ok && data.stats) {
+                    const stats = data.stats;
+                    const metricsDiv = document.getElementById('lightweightMetrics');
+                    
+                    metricsDiv.innerHTML = `
+                        <p><strong>학습 횟수:</strong> ${stats.training_count}</p>
+                        <p><strong>버퍼 크기:</strong> ${stats.buffer_size}</p>
+                        <p><strong>LoRA 레이어:</strong> ${stats.lora_layers}개</p>
+                        <p><strong>Adapter 레이어:</strong> ${stats.adapter_layers}개</p>
+                        <p><strong>학습 상태:</strong> ${stats.is_training ? '🔄 학습 중' : '✅ 대기 중'}</p>
+                        ${stats.last_training_time ? `<p><strong>마지막 학습:</strong> ${new Date(stats.last_training_time).toLocaleString()}</p>` : ''}
+                    `;
+                } else {
+                    document.getElementById('lightweightMetrics').innerHTML = '<p>경량 파인튜너 비활성화</p>';
+                }
+            } catch (error) {
+                console.error('경량 파인튜닝 지표 확인 실패:', error);
+                document.getElementById('lightweightMetrics').innerHTML = '<p>지표 로드 실패</p>';
+            }
+        }
+
         // 페이지 로드 시 서버 상태 확인
         checkServerStatus();
         checkRealtimeStats();
+        checkLightweightMetrics();
         setInterval(checkServerStatus, 30000); // 30초마다 상태 확인
         setInterval(checkRealtimeStats, 10000); // 10초마다 실시간 통계 확인
+        setInterval(checkLightweightMetrics, 15000); // 15초마다 경량 파인튜닝 지표 확인
     </script>
 </body>
 </html> 

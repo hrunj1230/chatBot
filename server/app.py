@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.transformer_pytorch import TransformerModel
 from utils.tokenizer import ChatbotTokenizer
 from utils.realtime_learner import initialize_realtime_learner, get_realtime_learner
+from utils.lightweight_finetuning import initialize_lightweight_finetuner, get_lightweight_finetuner
 
 app = Flask(__name__)
 CORS(app)
@@ -126,6 +127,17 @@ def chat():
         # 응답 생성
         response = generate_response(user_message)
         
+        # 경량 파인튜닝 처리
+        lightweight_result = None
+        lightweight_finetuner = get_lightweight_finetuner()
+        if lightweight_finetuner:
+            # 경량 파인튜닝된 모델로 응답 생성
+            lightweight_response = lightweight_finetuner.generate_response(user_message)
+            lightweight_result = {
+                'response': lightweight_response,
+                'method': 'lightweight_finetuning'
+            }
+        
         # 실시간 학습 데이터 추가
         realtime_learner = get_realtime_learner()
         if realtime_learner:
@@ -144,6 +156,7 @@ def chat():
         return jsonify({
             'response': response,
             'suggestions': suggestions,
+            'lightweight_result': lightweight_result,
             'timestamp': datetime.now().isoformat()
         })
         
@@ -277,6 +290,32 @@ def realtime_stats():
             'timestamp': datetime.now().isoformat()
         }), 500
 
+@app.route('/api/lightweight-metrics')
+def lightweight_metrics():
+    """경량 파인튜닝 성능 지표"""
+    try:
+        lightweight_finetuner = get_lightweight_finetuner()
+        if lightweight_finetuner:
+            stats = lightweight_finetuner.get_stats()
+            return jsonify({
+                'status': 'success',
+                'stats': stats,
+                'timestamp': datetime.now().isoformat()
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': '경량 파인튜너가 초기화되지 않았습니다.',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 def log_chat(user_input, response):
     """대화 로그를 기록합니다."""
     log_entry = {
@@ -332,6 +371,14 @@ try:
         print("실시간 학습기 초기화 완료")
     else:
         print("실시간 학습기 초기화 실패 (기본 모드로 실행)")
+    
+    # 경량 파인튜닝 초기화
+    print("경량 파인튜닝 초기화 중...")
+    lightweight_finetuner_loaded = initialize_lightweight_finetuner()
+    if lightweight_finetuner_loaded:
+        print("경량 파인튜닝 초기화 완료")
+    else:
+        print("경량 파인튜닝 초기화 실패 (기본 모드로 실행)")
         
 except Exception as e:
     print(f"모델 초기화 실패: {e}")
