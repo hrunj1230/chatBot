@@ -15,6 +15,7 @@ COPY utils/realtime_learner.py utils/
 COPY utils/lightweight_finetuning.py utils/
 COPY utils/auto_data_collector.py utils/
 COPY utils/auto_scheduler.py utils/
+COPY run_data_collection.py .
 COPY simple_chat_server.py .
 COPY server/templates/ server/templates/
 COPY templates/ templates/
