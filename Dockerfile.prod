@@ -11,6 +11,8 @@ RUN pip install --upgrade pip && \
 
 COPY models/transformer_pytorch.py models/
 COPY utils/tokenizer.py utils/
+COPY utils/realtime_learner.py utils/
+COPY utils/lightweight_finetuning.py utils/
 COPY server/app.py server/
 COPY server/templates/ server/templates/
 # 토크나이저 파일 복사 (메뉴얼 토크나이저)
