@@ -2,7 +2,7 @@
 import multiprocessing
 
 # 서버 설정
-bind = "0.0.0.0:5000"
+bind = "0.0.0.0:8080"
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = "sync"
 worker_connections = 1000
@@ -21,6 +21,18 @@ loglevel = "info"
 # 프로세스 설정
 preload_app = True
 daemon = False
+
+# 애플리케이션 초기화 함수
+def on_starting(server):
+    """서버 시작 시 모델 초기화"""
+    print("Gunicorn 서버 시작 중...")
+    
+def when_ready(server):
+    """워커 준비 시 모델 초기화"""
+    print("워커 준비 완료, 모델 초기화 중...")
+    from server.app import initialize_model
+    initialize_model()
+    print("모델 초기화 완료")
 
 # 헬스체크 설정
 check_config = True 

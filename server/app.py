@@ -199,8 +199,9 @@ def initialize_model():
     else:
         print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
 
-# 모델 초기화 (모든 환경에서 실행)
-initialize_model()
+# 모델 초기화 (Gunicorn 시작 시에만 실행)
+if __name__ == '__main__':
+    initialize_model()
 
 # 개발 환경에서만 Flask 서버 실행 (프로덕션에서는 Gunicorn 사용)
 if __name__ == '__main__':

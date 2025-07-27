@@ -19,8 +19,6 @@ COPY data/manual_tokenizer.pkl utils/tokenizer.pkl
 COPY models/manual_chatbot_model/best_model.pth models/checkpoints/best_model.pth
 # Gunicorn 설정 파일 복사
 COPY gunicorn.conf.py .
-# 서버 시작 스크립트 복사
-COPY start_server.py .
 
 RUN mkdir -p data models/checkpoints server/templates logs
 
@@ -31,8 +29,8 @@ ENV FLASK_APP=server/app.py
 ENV FLASK_ENV=production
 ENV PRODUCTION=true
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:8080/api/status || exit 1
 
-# 애플리케이션 실행 (간단한 Gunicorn 명령어)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "30", "server.app:app"] 
+# 애플리케이션 실행 (Gunicorn 설정 파일 사용)
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "server.app:app"] 
