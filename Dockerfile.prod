@@ -13,7 +13,9 @@ COPY models/transformer_pytorch.py models/
 COPY utils/tokenizer.py utils/
 COPY utils/realtime_learner.py utils/
 COPY utils/lightweight_finetuning.py utils/
-COPY server/app.py server/
+COPY utils/auto_data_collector.py utils/
+COPY utils/auto_scheduler.py utils/
+COPY simple_chat_server.py .
 COPY server/templates/ server/templates/
 # 토크나이저 파일 복사 (메뉴얼 토크나이저)
 COPY data/manual_tokenizer.pkl utils/tokenizer.pkl
@@ -35,5 +37,5 @@ ENV PRODUCTION=true
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=5 \
     CMD curl -f http://localhost:8080/ || exit 1
 
-# 애플리케이션 실행 (Flask 개발 서버로 테스트)
-CMD ["python", "server/app.py"] 
+# 애플리케이션 실행 (자동학습 챗봇 서버)
+CMD ["python", "simple_chat_server.py"] 

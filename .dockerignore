@@ -1,7 +1,6 @@
 # Git 관련
 .git
 .gitignore
-README.md
 
 # Python 관련
 __pycache__
@@ -25,7 +24,7 @@ coverage.xml
 .pytest_cache
 .hypothesis
 
-# 개발 도구
+# 개발 환경
 .vscode
 .idea
 *.swp
@@ -42,22 +41,21 @@ ehthumbs.db
 Thumbs.db
 
 # 프로젝트 특정
-# data/*.json
-# data/*.csv
-# models/checkpoints/*
-# logs/*
-# *.log
+data/chat_logs.json
+data/training_data.json
+logs/
+*.log
 
-# 모델/토크나이저 파일은 반드시 포함해야 하므로 주석 처리
+# 테스트 파일
+test_*.py
+*_test.py
+tests/
 
 # 문서
-*.md
+README.md
 docs/
-
-# 테스트
-tests/
-test_*
+*.md
 
 # 임시 파일
-*.tmp
-*.temp 
+temp/
+tmp/ 
