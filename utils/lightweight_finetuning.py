@@ -89,10 +89,26 @@ class LightweightFineTuner:
         try:
             # 토크나이저 로드
             self.tokenizer = ChatbotTokenizer()
-            self.tokenizer.load('data/manual_tokenizer.pkl')
+            try:
+                self.tokenizer.load('data/manual_tokenizer.pkl')
+            except FileNotFoundError:
+                try:
+                    # utils 폴더에서 토크나이저 찾기
+                    self.tokenizer.load('utils/tokenizer.pkl')
+                except FileNotFoundError:
+                    print("토크나이저 파일을 찾을 수 없습니다. 기본 모드로 실행합니다.")
+                    return False
             
             # 기본 모델 로드
-            checkpoint = torch.load(self.model_path, map_location=self.device)
+            try:
+                checkpoint = torch.load(self.model_path, map_location=self.device)
+            except FileNotFoundError:
+                try:
+                    # checkpoints 폴더에서 모델 찾기
+                    checkpoint = torch.load('models/checkpoints/best_model.pth', map_location=self.device)
+                except FileNotFoundError:
+                    print("모델 파일을 찾을 수 없습니다. 기본 모드로 실행합니다.")
+                    return False
             
             vocab_size = checkpoint.get('vocab_size', self.tokenizer.get_vocab_size())
             d_model = checkpoint.get('d_model', 256)
@@ -206,9 +222,11 @@ class LightweightFineTuner:
         }
         
         self.training_buffer.append(training_data)
+        print(f"📝 경량 파인튜닝 데이터 추가: {question[:50]}... (버퍼: {len(self.training_buffer)}/50)")
         
         # 버퍼가 충분히 차면 학습 실행
         if len(self.training_buffer) >= 50:
+            print(f"🚀 경량 파인튜닝 시작! {len(self.training_buffer)}개 데이터로 학습합니다...")
             self.trigger_training()
     
     def trigger_training(self):

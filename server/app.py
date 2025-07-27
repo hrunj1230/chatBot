@@ -137,12 +137,17 @@ def chat():
                 'response': lightweight_response,
                 'method': 'lightweight_finetuning'
             }
+            
+            # 대화 품질 평가 및 학습 데이터 추가
+            conversation_quality = self._evaluate_conversation_quality(user_message, response)
+            if conversation_quality > 0.3:  # 품질이 좋은 대화만 학습
+                lightweight_finetuner.add_training_data(user_message, response, conversation_quality)
         
         # 실시간 학습 데이터 추가
         realtime_learner = get_realtime_learner()
         if realtime_learner:
-            # 대화 품질 평가 (간단한 방식)
-            quality_score = 1.0 if len(response) > 10 else 0.5
+            # 대화 품질 평가
+            quality_score = _evaluate_conversation_quality(user_message, response)
             realtime_learner.add_conversation(user_message, response, quality_score)
             
             # 세무회계 관련 제안
@@ -315,6 +320,29 @@ def lightweight_metrics():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+
+def _evaluate_conversation_quality(user_input, response):
+    """대화 품질 평가"""
+    quality_score = 0.5  # 기본값
+    
+    # 사용자 입력 길이 평가
+    if len(user_input) > 20:
+        quality_score += 0.2
+    elif len(user_input) > 10:
+        quality_score += 0.1
+    
+    # 응답 길이 평가
+    if len(response) > 50:
+        quality_score += 0.2
+    elif len(response) > 20:
+        quality_score += 0.1
+    
+    # 세무회계 관련 키워드 평가
+    accounting_keywords = ['세무', '회계', '부가세', '소득세', '법인세', '신고', '납부', '세금', '매출', '비용', '손익']
+    if any(keyword in user_input for keyword in accounting_keywords):
+        quality_score += 0.1
+    
+    return min(quality_score, 1.0)
 
 def log_chat(user_input, response):
     """대화 로그를 기록합니다."""
