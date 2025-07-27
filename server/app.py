@@ -187,4 +187,5 @@ else:
 
 # 개발 환경에서만 Flask 서버 실행 (프로덕션에서는 Gunicorn 사용)
 if __name__ == '__main__':
+    print("개발 환경에서 Flask 서버를 시작합니다...")
     app.run(host='0.0.0.0', port=5000, debug=False) 
