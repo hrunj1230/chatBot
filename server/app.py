@@ -12,6 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.transformer_pytorch import TransformerModel
 from utils.tokenizer import ChatbotTokenizer
+from utils.realtime_learner import initialize_realtime_learner, get_realtime_learner
 
 app = Flask(__name__)
 CORS(app)
@@ -125,11 +126,24 @@ def chat():
         # 응답 생성
         response = generate_response(user_message)
         
+        # 실시간 학습 데이터 추가
+        realtime_learner = get_realtime_learner()
+        if realtime_learner:
+            # 대화 품질 평가 (간단한 방식)
+            quality_score = 1.0 if len(response) > 10 else 0.5
+            realtime_learner.add_conversation(user_message, response, quality_score)
+            
+            # 세무회계 관련 제안
+            suggestions = realtime_learner.get_accounting_suggestions(user_message)
+        else:
+            suggestions = []
+        
         # 로그 기록
         log_chat(user_message, response)
         
         return jsonify({
             'response': response,
+            'suggestions': suggestions,
             'timestamp': datetime.now().isoformat()
         })
         
@@ -202,6 +216,67 @@ def train_model():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/retrain', methods=['POST'])
+def retrain_model():
+    """모델 재학습 실행"""
+    try:
+        print("모델 재학습 요청 받음...")
+        
+        # 재학습 스크립트 실행
+        import subprocess
+        result = subprocess.run([
+            sys.executable, 
+            'training/retrain_model.py'
+        ], capture_output=True, text=True, cwd=os.getcwd())
+        
+        if result.returncode == 0:
+            return jsonify({
+                'status': 'success',
+                'message': '모델 재학습이 완료되었습니다.',
+                'output': result.stdout,
+                'timestamp': datetime.now().isoformat()
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': '모델 재학습에 실패했습니다.',
+                'output': result.stderr,
+                'timestamp': datetime.now().isoformat()
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/realtime-stats')
+def realtime_stats():
+    """실시간 학습 통계"""
+    try:
+        realtime_learner = get_realtime_learner()
+        if realtime_learner:
+            stats = realtime_learner.get_stats()
+            return jsonify({
+                'status': 'success',
+                'stats': stats,
+                'timestamp': datetime.now().isoformat()
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': '실시간 학습기가 초기화되지 않았습니다.',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 def log_chat(user_input, response):
     """대화 로그를 기록합니다."""
     log_entry = {
@@ -249,6 +324,15 @@ print("서버 초기화 중...")
 try:
     initialize_model()
     print("모델 초기화 완료")
+    
+    # 실시간 학습기 초기화
+    print("실시간 학습기 초기화 중...")
+    realtime_learner_loaded = initialize_realtime_learner()
+    if realtime_learner_loaded:
+        print("실시간 학습기 초기화 완료")
+    else:
+        print("실시간 학습기 초기화 실패 (기본 모드로 실행)")
+        
 except Exception as e:
     print(f"모델 초기화 실패: {e}")
     print("기본 응답 모드로 서버를 시작합니다.")

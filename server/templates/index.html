@@ -255,6 +255,19 @@
                         <li>다양한 질문 패턴으로 학습시키면 더 좋습니다</li>
                     </ul>
                 </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="train-btn" style="background: #dc3545;" onclick="retrainModel()">
+                        🔄 모델 재학습 실행
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
+                    <h4>📊 실시간 학습 통계</h4>
+                    <div id="realtimeStats">
+                        <p>로딩 중...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -376,9 +389,73 @@
             }
         });
 
+        // 모델 재학습 실행
+        async function retrainModel() {
+            if (!confirm('모델 재학습을 실행하시겠습니까? 이 작업은 시간이 오래 걸릴 수 있습니다.')) {
+                return;
+            }
+            
+            const trainBtn = document.querySelector('button[onclick="retrainModel()"]');
+            trainBtn.textContent = '🔄 재학습 중...';
+            trainBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/retrain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('모델 재학습이 완료되었습니다!');
+                    console.log('재학습 출력:', data.output);
+                } else {
+                    alert('모델 재학습 실패: ' + data.error);
+                    console.error('재학습 오류:', data.output);
+                }
+            } catch (error) {
+                console.error('재학습 요청 실패:', error);
+                alert('서버 연결에 실패했습니다.');
+            } finally {
+                trainBtn.textContent = '🔄 모델 재학습 실행';
+                trainBtn.disabled = false;
+            }
+        }
+
+        // 실시간 학습 통계 확인
+        async function checkRealtimeStats() {
+            try {
+                const response = await fetch('/api/realtime-stats');
+                const data = await response.json();
+                
+                if (response.ok && data.stats) {
+                    const stats = data.stats;
+                    const statsDiv = document.getElementById('realtimeStats');
+                    
+                    statsDiv.innerHTML = `
+                        <p><strong>총 대화 수:</strong> ${stats.total_conversations}</p>
+                        <p><strong>학습 횟수:</strong> ${stats.learning_count}</p>
+                        <p><strong>버퍼 크기:</strong> ${stats.buffer_size}</p>
+                        <p><strong>학습 상태:</strong> ${stats.is_learning ? '🔄 학습 중' : '✅ 대기 중'}</p>
+                        ${stats.last_learning_time ? `<p><strong>마지막 학습:</strong> ${new Date(stats.last_learning_time).toLocaleString()}</p>` : ''}
+                    `;
+                } else {
+                    document.getElementById('realtimeStats').innerHTML = '<p>실시간 학습기 비활성화</p>';
+                }
+            } catch (error) {
+                console.error('실시간 통계 확인 실패:', error);
+                document.getElementById('realtimeStats').innerHTML = '<p>통계 로드 실패</p>';
+            }
+        }
+
         // 페이지 로드 시 서버 상태 확인
         checkServerStatus();
+        checkRealtimeStats();
         setInterval(checkServerStatus, 30000); // 30초마다 상태 확인
+        setInterval(checkRealtimeStats, 10000); // 10초마다 실시간 통계 확인
     </script>
 </body>
 </html> 
