@@ -156,6 +156,11 @@
         
         <div class="stats-container">
             <h3>📊 학습 시스템 상태</h3>
+            <div style="margin-bottom: 20px; text-align: center;">
+                <button onclick="runAutoCollection()" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    🔄 자동 데이터 수집 실행
+                </button>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="realtimeCount">0</div>
@@ -286,6 +291,38 @@
                 
             } catch (error) {
                 console.error('통계 업데이트 실패:', error);
+            }
+        }
+
+        async function runAutoCollection() {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            try {
+                button.textContent = '🔄 수집 중...';
+                button.disabled = true;
+                
+                const response = await fetch('/api/auto-collect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    alert(`자동 데이터 수집 완료!\n수집된 데이터: ${data.collected_count}개`);
+                    updateStats(); // 통계 업데이트
+                } else {
+                    alert('자동 데이터 수집 실패: ' + data.error);
+                }
+                
+            } catch (error) {
+                alert('자동 데이터 수집 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
             }
         }
 

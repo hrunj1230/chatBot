@@ -226,12 +226,24 @@ def lightweight_metrics():
             'timestamp': datetime.now().isoformat()
         }), 500
 
-@app.route('/api/auto-collect', methods=['POST'])
+@app.route('/api/auto-collect', methods=['GET', 'POST'])
 def auto_collect_data():
     """자동 데이터 수집 실행"""
     try:
         from utils.auto_data_collector import run_auto_data_collection
         
+        # GET 요청인 경우 상태만 반환
+        if request.method == 'GET':
+            return jsonify({
+                'status': 'success',
+                'message': '자동 데이터 수집 API가 활성화되어 있습니다.',
+                'endpoint': '/api/auto-collect',
+                'methods': ['GET', 'POST'],
+                'description': 'POST 요청으로 자동 데이터 수집을 실행할 수 있습니다.',
+                'timestamp': datetime.now().isoformat()
+            }), 200
+        
+        # POST 요청인 경우 실제 데이터 수집 실행
         print("자동 데이터 수집을 시작합니다...")
         collected_data = run_auto_data_collection()
         
@@ -265,6 +277,81 @@ def auto_collect_data():
     except Exception as e:
         return jsonify({
             'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/health')
+def health_check():
+    """상세한 헬스체크 엔드포인트"""
+    try:
+        # 각 시스템 상태 확인
+        systems_status = {
+            'server': 'running',
+            'model': 'loaded',
+            'realtime_learner': 'unknown',
+            'lightweight_finetuner': 'unknown',
+            'auto_collector': 'unknown',
+            'auto_scheduler': 'unknown'
+        }
+        
+        # 실시간 학습기 상태 확인
+        try:
+            from utils.realtime_learner import get_realtime_learner
+            realtime_learner = get_realtime_learner()
+            if realtime_learner:
+                systems_status['realtime_learner'] = 'running'
+            else:
+                systems_status['realtime_learner'] = 'not_initialized'
+        except Exception as e:
+            systems_status['realtime_learner'] = f'error: {str(e)}'
+        
+        # 경량 파인튜닝 상태 확인
+        try:
+            from utils.lightweight_finetuning import get_lightweight_finetuner
+            lightweight_finetuner = get_lightweight_finetuner()
+            if lightweight_finetuner:
+                systems_status['lightweight_finetuner'] = 'running'
+            else:
+                systems_status['lightweight_finetuner'] = 'not_initialized'
+        except Exception as e:
+            systems_status['lightweight_finetuner'] = f'error: {str(e)}'
+        
+        # 자동 데이터 수집기 상태 확인
+        try:
+            from utils.auto_data_collector import get_auto_collector
+            auto_collector = get_auto_collector()
+            if auto_collector:
+                systems_status['auto_collector'] = 'running'
+            else:
+                systems_status['auto_collector'] = 'not_initialized'
+        except Exception as e:
+            systems_status['auto_collector'] = f'error: {str(e)}'
+        
+        # 자동 스케줄러 상태 확인
+        try:
+            from utils.auto_scheduler import get_auto_scheduler
+            auto_scheduler = get_auto_scheduler()
+            if auto_scheduler and auto_scheduler.is_running:
+                systems_status['auto_scheduler'] = 'running'
+            elif auto_scheduler:
+                systems_status['auto_scheduler'] = 'stopped'
+            else:
+                systems_status['auto_scheduler'] = 'not_initialized'
+        except Exception as e:
+            systems_status['auto_scheduler'] = f'error: {str(e)}'
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'systems': systems_status,
+            'version': '1.0.0',
+            'uptime': 'running'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
