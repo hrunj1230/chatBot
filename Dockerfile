@@ -49,7 +49,7 @@ ENV FLASK_ENV=production
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/status || exit 1
+    CMD curl -f http://localhost:8080/api/status || exit 1
 
 # 애플리케이션 실행
 CMD ["python", "server/app.py"] 
