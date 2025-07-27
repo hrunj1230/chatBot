@@ -30,7 +30,7 @@ ENV FLASK_ENV=production
 ENV PRODUCTION=true
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=5 \
-    CMD curl -f http://localhost:8080/api/status || exit 1
+    CMD curl -f http://localhost:8080/ || exit 1
 
-# 애플리케이션 실행 (Gunicorn 설정 파일 사용)
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "server.app:app"] 
+# 애플리케이션 실행 (간단한 Gunicorn 명령어)
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--timeout", "30", "--access-logfile", "-", "--error-logfile", "-", "server.app:app"] 
