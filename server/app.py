@@ -110,7 +110,12 @@ def generate_response(user_input, max_length=50):
 @app.route('/')
 def home():
     """홈페이지"""
-    return render_template('index.html')
+    return jsonify({
+        'message': '챗봇 서버가 실행 중입니다.',
+        'status': 'running',
+        'model_loaded': model is not None,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
