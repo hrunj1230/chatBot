@@ -115,7 +115,7 @@ def home():
         'status': 'running',
         'model_loaded': model is not None,
         'timestamp': datetime.now().isoformat()
-    })
+    }), 200
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
