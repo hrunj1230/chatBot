@@ -185,6 +185,6 @@ if model_loaded:
 else:
     print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
 
+# 개발 환경에서만 Flask 서버 실행 (프로덕션에서는 Gunicorn 사용)
 if __name__ == '__main__':
-    # 개발 환경에서만 Flask 서버 실행
     app.run(host='0.0.0.0', port=5000, debug=False) 
