@@ -197,7 +197,9 @@ if __name__ == '__main__':
     else:
         print("개발 환경에서 Flask 서버를 시작합니다...")
         initialize_model()
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        # 환경 변수에서 포트 가져오기 (Railway는 8888 사용)
+        port = int(os.environ.get('PORT', 5000))
+        app.run(host='0.0.0.0', port=port, debug=False)
 else:
     # Gunicorn 환경에서는 모델만 초기화
     print("Gunicorn 환경에서 모델을 초기화합니다...")
