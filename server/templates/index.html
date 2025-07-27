@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 챗봇</title>
+    <title>챗봇 시스템</title>
     <style>
         * {
             margin: 0;
@@ -14,234 +14,282 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
         
-        .chat-container {
-            width: 90%;
-            max-width: 600px;
-            height: 80vh;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
         
-        .chat-header {
+        .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 30px;
             text-align: center;
         }
         
-        .chat-header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
         }
         
-        .chat-header p {
-            opacity: 0.8;
-            font-size: 14px;
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
         }
         
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .chat-section, .training-section {
             background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .chat-container {
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 15px;
         }
         
         .message {
             margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-        }
-        
-        .message.user {
-            justify-content: flex-end;
-        }
-        
-        .message.bot {
-            justify-content: flex-start;
-        }
-        
-        .message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 18px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
             word-wrap: break-word;
         }
         
-        .message.user .message-content {
+        .user-message {
             background: #667eea;
             color: white;
+            margin-left: auto;
+            text-align: right;
         }
         
-        .message.bot .message-content {
-            background: white;
+        .bot-message {
+            background: #e9ecef;
             color: #333;
-            border: 1px solid #e9ecef;
         }
         
-        .chat-input {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e9ecef;
-        }
-        
-        .input-container {
+        .input-group {
             display: flex;
             gap: 10px;
         }
         
-        .message-input {
+        .chat-input {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e9ecef;
-            border-radius: 25px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
         }
         
-        .message-input:focus {
-            border-color: #667eea;
-        }
-        
-        .send-button {
+        .send-btn {
             padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .training-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .train-btn {
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
-            transition: transform 0.2s;
+            font-weight: bold;
+            transition: background 0.3s;
         }
         
-        .send-button:hover {
-            transform: scale(1.05);
-        }
-        
-        .send-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .typing-indicator {
-            display: none;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
-            border: 1px solid #e9ecef;
-            color: #666;
-            font-style: italic;
+        .train-btn:hover {
+            background: #218838;
         }
         
         .status-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
         
         .status-online {
             background: #28a745;
-            color: white;
         }
         
         .status-offline {
             background: #dc3545;
-            color: white;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="status-indicator" id="statusIndicator">
-        <span id="statusText">연결 중...</span>
-    </div>
-    
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>🤖 AI 챗봇</h1>
-            <p>무엇이든 물어보세요!</p>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 챗봇 시스템</h1>
+            <p>AI 챗봇과 대화하고 모델을 학습시켜보세요</p>
         </div>
         
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot">
-                <div class="message-content">
-                    안녕하세요! 저는 AI 챗봇입니다. 무엇을 도와드릴까요?
+        <div class="main-content">
+            <!-- 챗봇 대화 섹션 -->
+            <div class="chat-section">
+                <h2 class="section-title">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    챗봇과 대화
+                </h2>
+                
+                <div class="chat-container" id="chatContainer">
+                    <div class="message bot-message">
+                        안녕하세요! 저는 AI 챗봇입니다. 무엇을 도와드릴까요?
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)">
+                    <button class="send-btn" onclick="sendMessage()">전송</button>
+                </div>
+            </div>
+            
+            <!-- 모델 학습 섹션 -->
+            <div class="training-section">
+                <h2 class="section-title">📚 모델 학습</h2>
+                
+                <form class="training-form" id="trainingForm">
+                    <div class="form-group">
+                        <label for="question">질문:</label>
+                        <input type="text" id="question" name="question" placeholder="질문을 입력하세요" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="answer">답변:</label>
+                        <textarea id="answer" name="answer" placeholder="답변을 입력하세요" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="train-btn" id="trainBtn">
+                        🎯 학습 데이터 추가
+                    </button>
+                </form>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 8px;">
+                    <h4>💡 학습 가이드</h4>
+                    <ul style="margin-top: 10px; padding-left: 20px;">
+                        <li>질문과 답변 쌍을 입력하여 모델을 학습시킵니다</li>
+                        <li>구체적이고 명확한 답변을 제공하세요</li>
+                        <li>다양한 질문 패턴으로 학습시키면 더 좋습니다</li>
+                    </ul>
                 </div>
             </div>
         </div>
-        
-        <div class="chat-input">
-            <div class="input-container">
-                <input type="text" 
-                       class="message-input" 
-                       id="messageInput" 
-                       placeholder="메시지를 입력하세요..."
-                       onkeypress="handleKeyPress(event)">
-                <button class="send-button" id="sendButton" onclick="sendMessage()">
-                    전송
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="typing-indicator" id="typingIndicator">
-        챗봇이 응답을 생성하고 있습니다...
     </div>
 
     <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        
-        let isTyping = false;
-        
         // 서버 상태 확인
         async function checkServerStatus() {
             try {
                 const response = await fetch('/api/status');
                 const data = await response.json();
+                const statusIndicator = document.getElementById('statusIndicator');
                 
                 if (data.status === 'running') {
                     statusIndicator.className = 'status-indicator status-online';
-                    statusText.textContent = '온라인';
+                    statusIndicator.title = '서버 온라인';
                 } else {
                     statusIndicator.className = 'status-indicator status-offline';
-                    statusText.textContent = '오프라인';
+                    statusIndicator.title = '서버 오프라인';
                 }
             } catch (error) {
-                statusIndicator.className = 'status-indicator status-offline';
-                statusText.textContent = '연결 실패';
+                console.error('서버 상태 확인 실패:', error);
+                document.getElementById('statusIndicator').className = 'status-indicator status-offline';
             }
         }
-        
+
         // 메시지 전송
         async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message || isTyping) return;
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
             
-            // 사용자 메시지 추가
+            if (!message) return;
+            
+            // 사용자 메시지 표시
             addMessage(message, 'user');
-            messageInput.value = '';
-            
-            // 타이핑 표시
-            showTyping();
+            input.value = '';
             
             try {
                 const response = await fetch('/api/chat', {
@@ -254,64 +302,84 @@
                 
                 const data = await response.json();
                 
-                if (data.error) {
-                    addMessage('죄송합니다. 오류가 발생했습니다: ' + data.error, 'bot');
-                } else {
+                if (response.ok) {
                     addMessage(data.response, 'bot');
+                } else {
+                    addMessage('죄송합니다. 오류가 발생했습니다.', 'bot');
                 }
-                
             } catch (error) {
-                addMessage('서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.', 'bot');
+                console.error('메시지 전송 실패:', error);
+                addMessage('서버 연결에 실패했습니다.', 'bot');
             }
-            
-            hideTyping();
         }
-        
+
         // 메시지 추가
         function addMessage(text, sender) {
+            const container = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = text;
             
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = text;
-            
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
-            
-            // 스크롤을 맨 아래로
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
         }
-        
-        // 타이핑 표시
-        function showTyping() {
-            isTyping = true;
-            sendButton.disabled = true;
-            typingIndicator.style.display = 'block';
-            chatMessages.appendChild(typingIndicator);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        
-        // 타이핑 숨김
-        function hideTyping() {
-            isTyping = false;
-            sendButton.disabled = false;
-            typingIndicator.style.display = 'none';
-            if (typingIndicator.parentNode) {
-                typingIndicator.parentNode.removeChild(typingIndicator);
-            }
-        }
-        
-        // 엔터키 처리
+
+        // Enter 키 처리
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 sendMessage();
             }
         }
-        
-        // 초기화
+
+        // 학습 데이터 추가
+        document.getElementById('trainingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const question = document.getElementById('question').value.trim();
+            const answer = document.getElementById('answer').value.trim();
+            
+            if (!question || !answer) {
+                alert('질문과 답변을 모두 입력해주세요.');
+                return;
+            }
+            
+            const trainBtn = document.getElementById('trainBtn');
+            trainBtn.textContent = '학습 중...';
+            trainBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/train', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        question: question, 
+                        answer: answer 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('학습 데이터가 성공적으로 추가되었습니다!');
+                    document.getElementById('trainingForm').reset();
+                } else {
+                    alert('학습 데이터 추가 실패: ' + data.error);
+                }
+            } catch (error) {
+                console.error('학습 데이터 추가 실패:', error);
+                alert('서버 연결에 실패했습니다.');
+            } finally {
+                trainBtn.textContent = '🎯 학습 데이터 추가';
+                trainBtn.disabled = false;
+            }
+        });
+
+        // 페이지 로드 시 서버 상태 확인
         checkServerStatus();
         setInterval(checkServerStatus, 30000); // 30초마다 상태 확인
     </script>
 </body>
+</html> 
 </html> 

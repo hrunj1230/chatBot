@@ -109,13 +109,8 @@ def generate_response(user_input, max_length=50):
 
 @app.route('/')
 def home():
-    """홈페이지"""
-    return jsonify({
-        'message': '챗봇 서버가 실행 중입니다.',
-        'status': 'running',
-        'model_loaded': model is not None,
-        'timestamp': datetime.now().isoformat()
-    }), 200
+    """홈페이지 - 챗봇 인터페이스"""
+    return render_template('index.html')
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -156,6 +151,56 @@ def status():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+
+@app.route('/api/train', methods=['POST'])
+def train_model():
+    """모델 학습 데이터 추가"""
+    try:
+        data = request.get_json()
+        question = data.get('question', '').strip()
+        answer = data.get('answer', '').strip()
+        
+        if not question or not answer:
+            return jsonify({'error': '질문과 답변을 모두 입력해주세요.'}), 400
+        
+        # 학습 데이터를 파일에 저장
+        training_data = {
+            'question': question,
+            'answer': answer,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # 학습 데이터 파일에 추가
+        training_file = 'data/training_data.json'
+        os.makedirs(os.path.dirname(training_file), exist_ok=True)
+        
+        try:
+            if os.path.exists(training_file):
+                with open(training_file, 'r', encoding='utf-8') as f:
+                    existing_data = json.load(f)
+            else:
+                existing_data = []
+            
+            existing_data.append(training_data)
+            
+            with open(training_file, 'w', encoding='utf-8') as f:
+                json.dump(existing_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"학습 데이터 추가: {question} -> {answer}")
+            
+            return jsonify({
+                'status': 'success',
+                'message': '학습 데이터가 성공적으로 추가되었습니다.',
+                'data_count': len(existing_data),
+                'timestamp': datetime.now().isoformat()
+            }), 200
+            
+        except Exception as e:
+            print(f"학습 데이터 저장 실패: {e}")
+            return jsonify({'error': '학습 데이터 저장에 실패했습니다.'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 def log_chat(user_input, response):
     """대화 로그를 기록합니다."""
