@@ -32,5 +32,5 @@ ENV PRODUCTION=true
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8888/api/status || exit 1
 
-# 애플리케이션 실행 (직접 Gunicorn 실행)
-CMD ["python", "-m", "gunicorn", "--bind", "0.0.0.0:8888", "--workers", "1", "--timeout", "30", "--access-logfile", "-", "--error-logfile", "-", "--log-level", "info", "server.app:app"] 
+# 애플리케이션 실행 (간단한 Gunicorn 명령어)
+CMD ["gunicorn", "--bind", "0.0.0.0:8888", "--workers", "1", "--timeout", "30", "server.app:app"] 
