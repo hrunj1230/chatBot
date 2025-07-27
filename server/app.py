@@ -144,11 +144,18 @@ def chat():
 @app.route('/api/status')
 def status():
     """서버 상태 확인"""
-    return jsonify({
-        'status': 'running',
-        'model_loaded': model is not None,
-        'timestamp': datetime.now().isoformat()
-    })
+    try:
+        return jsonify({
+            'status': 'running',
+            'model_loaded': model is not None,
+            'timestamp': datetime.now().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 def log_chat(user_input, response):
     """대화 로그를 기록합니다."""
