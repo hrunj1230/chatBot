@@ -149,10 +149,10 @@ docker stats
 ### **헬스체크**
 ```bash
 # 서버 상태 확인
-curl http://localhost:5000/api/status
+curl http://localhost:8080/api/status
 
 # 응답 시간 측정
-curl -w "@curl-format.txt" -o /dev/null -s http://localhost:5000/api/status
+curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8080/api/status
 ```
 
 ## 🔄 **자동 재학습 설정**

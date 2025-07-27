@@ -199,16 +199,20 @@ def initialize_model():
     else:
         print("챗봇 서버가 시작되었습니다. (모델 로드 실패 - 기본 응답만 가능)")
 
-# 모델 초기화 (모든 환경에서 실행하되 안전하게)
+# 모델 초기화 (안전하게)
+print("서버 초기화 중...")
 try:
     initialize_model()
+    print("모델 초기화 완료")
 except Exception as e:
-    print(f"초기 모델 로드 실패: {e}")
-    print("서버는 기본 응답 모드로 시작됩니다.")
+    print(f"모델 초기화 실패: {e}")
+    print("기본 응답 모드로 서버를 시작합니다.")
+    model_loaded = False
 
-# 개발 환경에서만 Flask 서버 실행 (프로덕션에서는 Gunicorn 사용)
+# Flask 서버 실행 (모든 환경에서)
 if __name__ == '__main__':
-    print("개발 환경에서 Flask 서버를 시작합니다...")
-    # 환경 변수에서 포트 가져오기 (Railway는 8080 사용)
+    print("Flask 서버를 시작합니다...")
+    # Railway 환경 변수에서 포트 가져오기
     port = int(os.environ.get('PORT', 8080))
+    print(f"서버가 포트 {port}에서 시작됩니다.")
     app.run(host='0.0.0.0', port=port, debug=False) 
