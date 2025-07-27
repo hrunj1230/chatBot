@@ -193,6 +193,6 @@ initialize_model()
 # 개발 환경에서만 Flask 서버 실행 (프로덕션에서는 Gunicorn 사용)
 if __name__ == '__main__':
     print("개발 환경에서 Flask 서버를 시작합니다...")
-    # 환경 변수에서 포트 가져오기 (Railway는 8888 사용)
-    port = int(os.environ.get('PORT', 5000))
+    # 환경 변수에서 포트 가져오기 (Railway는 8080 사용)
+    port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False) 
