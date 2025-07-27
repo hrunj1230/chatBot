@@ -281,6 +281,66 @@ def auto_collect_data():
             'timestamp': datetime.now().isoformat()
         }), 500
 
+@app.route('/api/manual-collect', methods=['POST'])
+def manual_collect_data():
+    """수동 데이터 수집 실행 (로컬 스크립트 실행)"""
+    try:
+        import subprocess
+        import sys
+        
+        print("수동 데이터 수집을 시작합니다...")
+        
+        # 로컬 스크립트 실행
+        result = subprocess.run([
+            sys.executable, 'run_data_collection.py'
+        ], capture_output=True, text=True, cwd=os.getcwd())
+        
+        if result.returncode == 0:
+            # 성공한 경우 파일 정보 확인
+            filename = 'data/auto_collected_data.json'
+            if os.path.exists(filename):
+                file_size = os.path.getsize(filename)
+                
+                # JSON 파일에서 데이터 개수 확인
+                try:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        import json
+                        data = json.load(f)
+                        collected_count = len(data)
+                except:
+                    collected_count = 0
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': '수동 데이터 수집이 완료되었습니다.',
+                    'collected_count': collected_count,
+                    'filename': filename,
+                    'file_size': file_size,
+                    'output': result.stdout,
+                    'timestamp': datetime.now().isoformat()
+                }), 200
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'error': '데이터 파일이 생성되지 않았습니다.',
+                    'output': result.stdout,
+                    'timestamp': datetime.now().isoformat()
+                }), 500
+        else:
+            return jsonify({
+                'status': 'error',
+                'error': f'스크립트 실행 실패: {result.stderr}',
+                'output': result.stdout,
+                'timestamp': datetime.now().isoformat()
+            }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 @app.route('/api/health')
 def health_check():
     """상세한 헬스체크 엔드포인트"""

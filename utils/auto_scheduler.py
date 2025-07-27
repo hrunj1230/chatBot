@@ -16,8 +16,8 @@ class AutoScheduler:
         self.scheduler_thread = None
         
         # 스케줄 설정
-        self.data_collection_interval = 24  # 24시간마다 데이터 수집
-        self.learning_trigger_interval = 6  # 6시간마다 학습 트리거
+        self.data_collection_interval = 0.25  # 15분마다 데이터 수집 (0.25시간)
+        self.learning_trigger_interval = 0.5  # 30분마다 학습 트리거 (0.5시간)
         
         print("자동 스케줄러 초기화 완료")
     
@@ -38,7 +38,7 @@ class AutoScheduler:
         self.scheduler_thread.daemon = True
         self.scheduler_thread.start()
         
-        print(f"자동 스케줄러 시작: 데이터 수집 {self.data_collection_interval}시간마다, 학습 트리거 {self.learning_trigger_interval}시간마다")
+        print(f"자동 스케줄러 시작: 데이터 수집 {self.data_collection_interval*60}분마다, 학습 트리거 {self.learning_trigger_interval*60}분마다")
     
     def stop_scheduler(self):
         """스케줄러 중지"""
@@ -126,8 +126,8 @@ class AutoScheduler:
         """스케줄 정보 반환"""
         return {
             'is_running': self.is_running,
-            'data_collection_interval': self.data_collection_interval,
-            'learning_trigger_interval': self.learning_trigger_interval,
+            'data_collection_interval_minutes': int(self.data_collection_interval * 60),
+            'learning_trigger_interval_minutes': int(self.learning_trigger_interval * 60),
             'next_data_collection': schedule.next_run(),
             'next_learning_trigger': schedule.next_run()
         }
